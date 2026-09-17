@@ -1,0 +1,22 @@
+# Local downloads and split archives
+downloads/*
+
+# Model weights and generated media
+models/*
+inputs/*
+outputs/*
+temp/*
+logs/*
+
+# Local inactive copies and embedded runtimes
+apps/_INACTIVE_*/
+
+# Python and local tooling artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Keep directory placeholders when needed
+!.gitkeep
