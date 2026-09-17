@@ -1,0 +1,7 @@
+# Compatibility pins added to the upstream LivePortrait requirements.
+# Gradio 5.1.0's broad dependency ranges otherwise resolve to incompatible
+# 2026 FastAPI/Pydantic releases.
+fastapi==0.115.2
+starlette==0.40.0
+pydantic==2.9.2
+pydantic-core==2.23.4

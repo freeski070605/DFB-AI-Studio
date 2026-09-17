@@ -1,0 +1,67 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260917111426
+Username: DESKTOP-P1R5HCD\frees
+RunAs User: DESKTOP-P1R5HCD\frees
+Configuration Name: 
+Machine: DESKTOP-P1R5HCD (Microsoft Windows NT 10.0.19045.0)
+Host Application: powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File E:\DFB_AI_Studio\scripts\system_check.ps1
+Process ID: 43624
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+DFB AI Studio system check
+Log: E:\DFB_AI_Studio\logs\system_check_20260917_111426.log
+
+== NVIDIA ==
+
+
+== Drives ==
+
+Name Root UsedGiB FreeGiB
+---- ---- ------- -------
+C    C:\   444.62   13.11
+E    E:\   250.79  211.96
+Z    Z:\    31.79   87.29
+
+
+== FFmpeg ==
+ffmpeg version 8.1.1-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers
+ffprobe version 8.1.1-full_build-www.gyan.dev Copyright (c) 2007-2026 the FFmpeg developers
+
+== ComfyUI PyTorch / CUDA ==
+
+
+== LivePortrait PyTorch / CUDA ==
+
+
+== Required paths ==
+
+Path                       Exists
+----                       ------
+E:\DFB_AI_Studio\models      True
+E:\DFB_AI_Studio\workflows   True
+E:\DFB_AI_Studio\inputs      True
+E:\DFB_AI_Studio\outputs     True
+E:\DFB_AI_Studio\temp        True
+E:\DFB_AI_Studio\logs        True
+
+
+
+Path                                       Exists
+----                                       ------
+C:\DFB_AI_Runtime\source\ComfyUI-master      True
+C:\DFB_AI_Runtime\source\LivePortrait-main   True
+Z:\DFB_AI_Models                             True
+
+
+**********************
+Windows PowerShell transcript end
+End time: 20260917111438
+**********************
