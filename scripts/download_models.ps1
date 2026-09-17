@@ -8,7 +8,7 @@ if (-not (Test-Path -LiteralPath $ModelRoot)) {
 $Jobs = @(
     @{ Relative='checkpoints\sd_xl_base_1.0.safetensors'; Url='https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors?download=true' },
     @{ Relative='controlnet\xinsir_controlnet_union_sdxl_1.0_promax.safetensors'; Url='https://huggingface.co/xinsir/controlnet-union-sdxl-1.0/resolve/main/diffusion_pytorch_model_promax.safetensors?download=true' },
-    @{ Relative='clip_vision\ipadapter_sdxl_vit_h.safetensors'; Url='https://huggingface.co/h94/IP-Adapter/resolve/main/sdxl_models/image_encoder/model.safetensors?download=true' },
+    @{ Relative='clip_vision\CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors'; Url='https://huggingface.co/h94/IP-Adapter/resolve/main/models/image_encoder/model.safetensors?download=true' },
     @{ Relative='ipadapter\ip-adapter-plus_sdxl_vit-h.safetensors'; Url='https://huggingface.co/h94/IP-Adapter/resolve/main/sdxl_models/ip-adapter-plus_sdxl_vit-h.safetensors?download=true' },
     @{ Relative='ipadapter\ip-adapter-plus-face_sdxl_vit-h.safetensors'; Url='https://huggingface.co/h94/IP-Adapter/resolve/main/sdxl_models/ip-adapter-plus-face_sdxl_vit-h.safetensors?download=true' },
     @{ Relative='diffusion_models\wan2.1_t2v_1.3B_fp16.safetensors'; Url='https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_1.3B_fp16.safetensors?download=true' },
