@@ -41,7 +41,23 @@ def main():
     from src.config.argument_config import ArgumentConfig
     from src.config.inference_config import InferenceConfig
     from src.config.crop_config import CropConfig
-    from src.live_portrait_pipeline import LivePortraitPipeline
+    import src.live_portrait_pipeline as live_portrait_pipeline
+
+    # LivePortrait normally builds a side-by-side concat preview in RAM after
+    # rendering. On long clips (thousands of frames) this can consume several
+    # additional GiB and crash even though animation has already completed.
+    # Reuse the already-rendered frame list instead, avoiding a second giant
+    # allocation. The main animated output is still written normally.
+    if cfg.get("memory_safe_concat", False):
+        def _memory_safe_concat(driving_image_lst, source_image_lst, I_p_lst):
+            return I_p_lst
+        live_portrait_pipeline.concat_frames = _memory_safe_concat
+        print("Memory-safe concat: ON (long-form mode)")
+
+    ArgumentConfig = ArgumentConfig
+    InferenceConfig = InferenceConfig
+    CropConfig = CropConfig
+    LivePortraitPipeline = live_portrait_pipeline.LivePortraitPipeline
 
     lp_args = ArgumentConfig(**allowed_kwargs(ArgumentConfig, cfg))
     inference_cfg = InferenceConfig(**allowed_kwargs(InferenceConfig, cfg))
