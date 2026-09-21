@@ -11,6 +11,6 @@ if not exist "%PY%" (
   exit /b 1
 )
 cd /d "%LIVE%"
-set "GRADIO_TEMP_DIR=C:\DFB_AI_Runtime\temp\gradio"
+set "GRADIO_TEMP_DIR=E:\DFB_AI_Runtime\temp\gradio"
 "%PY%" app.py --output-dir "%ROOT%\outputs\portrait_animation" --server-name 127.0.0.1 --server-port 8890
 if errorlevel 1 pause
