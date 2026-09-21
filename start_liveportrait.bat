@@ -1,4 +1,5 @@
 @echo off
+set "GRADIO_ALLOWED_PATHS=E:\DFB_AI_Studio\outputs\portrait_animation"
 setlocal
 set "ROOT=E:\DFB_AI_Studio"
 set "LIVE=C:\DFB_AI_Runtime\source\LivePortrait-main"
