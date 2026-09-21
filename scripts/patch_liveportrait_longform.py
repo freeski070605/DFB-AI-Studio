@@ -21,7 +21,7 @@ INSERT = r'''
         # DFB long-form mode: skip the memory-heavy 3-panel concat preview.
         # The stock concat_frames() call materializes every 512x1536 preview
         # frame in RAM before the actual animation is written.
-        if os.environ.get("DFB_LIVEPORTRAIT_SKIP_CONCAT", "0") == "1" and (
+        if os.environ.get("DFB_LIVEPORTRAIT_SKIP_CONCAT", "1") == "1" and (
             flag_is_driving_video or (flag_is_source_video and not flag_is_driving_video)
         ):
             import gc
@@ -94,7 +94,16 @@ def main():
     text = TARGET.read_text(encoding="utf-8")
 
     if GUARD_MARKER in text:
-        print("DFB long-form patch already installed.")
+        # Upgrade older patch revisions so concat skipping is ON by default,
+        # even if LivePortrait is started outside the DFB launcher.
+        old = 'os.environ.get("DFB_LIVEPORTRAIT_SKIP_CONCAT", "0") == "1"'
+        new = 'os.environ.get("DFB_LIVEPORTRAIT_SKIP_CONCAT", "1") == "1"'
+        if old in text:
+            text = text.replace(old, new, 1)
+            TARGET.write_text(text, encoding="utf-8")
+            print("Upgraded DFB long-form patch: concat preview now defaults to OFF.")
+        else:
+            print("DFB long-form patch already installed.")
         return
 
     if MARKER not in text:
