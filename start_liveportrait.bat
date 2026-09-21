@@ -1,5 +1,6 @@
 @echo off
 setlocal
+set "DFB_LIVEPORTRAIT_SKIP_CONCAT=1"
 set "ROOT=E:\DFB_AI_Studio"
 set "LIVE=C:\DFB_AI_Runtime\source\LivePortrait-main"
 set "PY=%LIVE%\.venv\Scripts\python.exe"
