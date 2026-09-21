@@ -4,6 +4,7 @@
   "source": "E:\\DFB_AI_Studio\\inputs\\liveportrait\\character_source.png",
   "driving": "E:\\DFB_AI_Studio\\inputs\\liveportrait\\freestyle_driving.mov",
   "output_dir": "E:\\DFB_AI_Studio\\outputs\\portrait_animation",
+  "memory_safe_concat": true,
   "flag_use_half_precision": true,
   "flag_crop_driving_video": true,
   "device_id": 0,
@@ -34,6 +35,7 @@
   "notes": {
     "source_image": "Use the locked front-neutral or front-serious Drew portrait.",
     "driving_video": "Use the Canon chest-up freestyle performance. Keep the face visible and avoid hands crossing the mouth.",
-    "locked_motion_preset": "0.80 expression-friendly preset validated from prior tests."
+    "locked_motion_preset": "0.80 expression-friendly preset validated from prior tests.",
+    "long_form": "memory_safe_concat prevents LivePortrait from allocating a giant side-by-side preview for long Canon clips."
   }
 }
