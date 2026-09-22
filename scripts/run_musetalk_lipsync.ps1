@@ -27,6 +27,11 @@ if (-not (Test-Path $AudioSource)) { throw "Audio source not found: $AudioSource
 if (-not (Test-Path $Py)) { throw "MuseTalk is not installed at $Root. Run scripts\install_musetalk.ps1 first." }
 if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) { throw "ffmpeg was not found in PATH." }
 
+& $Py -c "import mmengine, mmcv, mmdet, mmpose; from mmpose.apis import inference_topdown, init_model"
+if ($LASTEXITCODE -ne 0) {
+    throw "MuseTalk MMLab dependencies are incomplete. Run: powershell -ExecutionPolicy Bypass -File E:\DFB_AI_Studio\scripts\repair_musetalk_mmlab.ps1"
+}
+
 New-Item -ItemType Directory -Force $Work, $ResultDir, $TempRoot, $HfHome | Out-Null
 $env:TEMP = $TempRoot
 $env:TMP = $TempRoot
