@@ -1,10 +1,28 @@
 param(
     [string]$ComfyRoot = 'C:\DFB_AI_Runtime\source\ComfyUI-master',
-    [string]$ModelRoot = 'Z:\DFB_AI_Models',
+    [string]$ModelRoot = '',
     [string]$StudioRoot = 'E:\DFB_AI_Studio'
 )
 
 $ErrorActionPreference = 'Stop'
+
+# Resolve the shared model root. Z: is preferred when mounted,
+# but this machine also uses E: for large local AI assets.
+if ([string]::IsNullOrWhiteSpace($ModelRoot)) {
+    if (Test-Path -LiteralPath 'Z:\') {
+        $ModelRoot = 'Z:\DFB_AI_Models'
+    } else {
+        $ModelRoot = 'E:\DFB_AI_Models'
+        Write-Host 'Z: is not currently mounted. Falling back to E:\DFB_AI_Models.'
+    }
+}
+
+# If a caller explicitly supplied an unavailable Z: path, fall back to E:.
+if ($ModelRoot -like 'Z:\*' -and -not (Test-Path -LiteralPath 'Z:\')) {
+    Write-Warning ('Requested model root is unavailable: ' + $ModelRoot)
+    $ModelRoot = 'E:\DFB_AI_Models'
+    Write-Host 'Using fallback model root: E:\DFB_AI_Models'
+}
 
 $ModelName = 'hunyuan3d-dit-v2-mv-turbo_fp16.safetensors'
 $ModelDir = Join-Path $ModelRoot 'checkpoints'
@@ -130,16 +148,28 @@ Download-Resumable -Url $ModelUrl -Destination $ModelPath
 Write-Host ''
 Write-Host 'Checking shared model path...'
 $ExtraPaths = Join-Path $ComfyRoot 'extra_model_paths.yaml'
+$NormalizedModelRoot = $ModelRoot.Replace('\', '/')
 
+$NeedsMapping = $true
 if (Test-Path -LiteralPath $ExtraPaths) {
     $ExtraText = Get-Content -LiteralPath $ExtraPaths -Raw
-    if ($ExtraText -notmatch [regex]::Escape($ModelRoot)) {
-        Write-Warning ('extra_model_paths.yaml does not visibly contain ' + $ModelRoot + '. If the model is not listed in ComfyUI, we will fix the shared model mapping.')
-    } else {
-        Write-Host 'Shared DFB model path appears configured.'
+    if ($ExtraText -match [regex]::Escape($NormalizedModelRoot) -or $ExtraText -match [regex]::Escape($ModelRoot)) {
+        $NeedsMapping = $false
+        Write-Host 'Shared DFB model path already configured.'
     }
-} else {
-    Write-Warning 'No extra_model_paths.yaml found. Your existing DFB shared-model setup may use another method.'
+}
+
+if ($NeedsMapping) {
+    $Mapping = @(
+        ''
+        'dfb_hunyuan3d_models:'
+        ('  base_path: ' + $NormalizedModelRoot)
+        '  checkpoints: checkpoints'
+        ''
+    ) -join [Environment]::NewLine
+
+    Add-Content -LiteralPath $ExtraPaths -Value $Mapping -Encoding UTF8
+    Write-Host ('Added ComfyUI checkpoint mapping for: ' + $ModelRoot)
 }
 
 Write-Host ''
