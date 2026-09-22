@@ -34,9 +34,58 @@ if (-not (Test-Path (Join-Path $Root ".git"))) {
 }
 
 if (-not (Test-Path $Py)) {
-    if (-not (Get-Command py -ErrorAction SilentlyContinue)) { throw "Python launcher 'py' was not found. MuseTalk requires Python 3.10." }
-    py -3.10 -m venv $Venv
+    $Created = $false
+
+    # First preference: a system Python 3.10 registered with the Windows launcher.
+    if (Get-Command py -ErrorAction SilentlyContinue) {
+        & py -3.10 --version *> $null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "Creating MuseTalk venv with system Python 3.10..."
+            & py -3.10 -m venv $Venv
+            if ($LASTEXITCODE -eq 0 -and (Test-Path $Py)) {
+                $Created = $true
+            }
+        }
+    }
+
+    # DFB fallback: reuse the already-working Python 3.10 interpreter from LivePortrait.
+    if (-not $Created) {
+        $LivePortraitPy = "C:\DFB_AI_Runtime\source\LivePortrait-main\.venv\Scripts\python.exe"
+
+        if (Test-Path $LivePortraitPy) {
+            $Version = & $LivePortraitPy -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
+
+            if ($Version.Trim() -eq "3.10") {
+                Write-Host "System Python 3.10 is not registered."
+                Write-Host "Using the existing LivePortrait Python 3.10 interpreter to create MuseTalk's isolated venv..."
+                & $LivePortraitPy -m venv $Venv
+
+                if ($LASTEXITCODE -eq 0 -and (Test-Path $Py)) {
+                    $Created = $true
+                }
+            }
+        }
+    }
+
+    if (-not $Created) {
+        throw @"
+Python 3.10 is required, but no usable Python 3.10 interpreter was found.
+
+The installer checked:
+  1. py -3.10
+  2. C:\DFB_AI_Runtime\source\LivePortrait-main\.venv\Scripts\python.exe
+
+Do not continue until Python 3.10 is available.
+"@
+    }
 }
+
+if (-not (Test-Path $Py)) {
+    throw "MuseTalk virtual environment was not created: $Py"
+}
+
+Write-Host "MuseTalk Python:"
+& $Py --version
 
 & $Py -m pip install --upgrade pip setuptools wheel
 & $Py -m pip install --no-cache-dir torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu118
