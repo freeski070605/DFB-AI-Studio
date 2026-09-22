@@ -71,20 +71,14 @@ Invoke-MimInstall "mmpose==1.1.0"
 Write-Host ""
 Write-Host "Verifying MuseTalk MMLab imports..."
 
-$Verify = @'
-import sys
-mods = ["mmengine", "mmcv", "mmdet", "mmpose"]
-for name in mods:
-    mod = __import__(name)
-    print(f"{name}: {getattr(mod, '__version__', 'installed')}")
-from mmpose.apis import inference_topdown, init_model
-print("mmpose.apis: OK")
-print("MMLAB_STACK_OK")
-'@
-
-& $Py -c $Verify
+& $Py -c "import mmengine, mmcv, mmdet, mmpose; print('Core MMLab imports: OK')"
 if ($LASTEXITCODE -ne 0) {
-    throw "MMLab packages installed, but the final Python import check failed."
+    throw "Core MMLab package import check failed."
+}
+
+& $Py -c "from mmpose.apis import inference_topdown, init_model; print('mmpose.apis: OK'); print('MMLAB_STACK_OK')"
+if ($LASTEXITCODE -ne 0) {
+    throw "MMPose API import check failed."
 }
 
 Write-Host ""
