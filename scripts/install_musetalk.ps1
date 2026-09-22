@@ -104,13 +104,30 @@ Write-Host "MuseTalk Python:"
 & $Py -m pip install --no-cache-dir -r (Join-Path $Root "requirements.txt")
 
 & $Py -m pip install --no-cache-dir -U openmim
+if ($LASTEXITCODE -ne 0) { throw "Failed to install openmim." }
+
 $Mim = Join-Path $Venv "Scripts\mim.exe"
 if (-not (Test-Path $Mim)) { throw "mim.exe was not installed correctly." }
 
-& $Mim install mmengine
-& $Mim install "mmcv==2.0.1"
-& $Mim install "mmdet==3.1.0"
-& $Mim install "mmpose==1.1.0"
+$MMLabPackages = @(
+    "mmengine",
+    "mmcv==2.0.1",
+    "mmdet==3.1.0",
+    "mmpose==1.1.0"
+)
+
+foreach ($Pkg in $MMLabPackages) {
+    Write-Host "Installing/verifying $Pkg ..."
+    & $Mim install $Pkg
+    if ($LASTEXITCODE -ne 0) {
+        throw "MIM failed while installing $Pkg"
+    }
+}
+
+& $Py -c "import mmengine, mmcv, mmdet, mmpose; from mmpose.apis import inference_topdown, init_model; print('MMLab imports: OK')"
+if ($LASTEXITCODE -ne 0) {
+    throw "MuseTalk MMLab import verification failed."
+}
 
 $WeightScript = "E:\DFB_AI_Studio\scripts\download_musetalk_weights.ps1"
 if (-not (Test-Path $WeightScript)) {
