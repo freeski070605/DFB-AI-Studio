@@ -109,6 +109,15 @@ if ($LASTEXITCODE -ne 0) { throw "Failed to install openmim." }
 $Mim = Join-Path $Venv "Scripts\mim.exe"
 if (-not (Test-Path $Mim)) { throw "mim.exe was not installed correctly." }
 
+# MMPose pulls chumpy==0.70. Its legacy setup imports pip during build,
+# so modern isolated builds fail with "No module named pip". Install it
+# explicitly in the MuseTalk venv before MMPose.
+& $Py -m pip install --no-cache-dir "setuptools<82" wheel
+if ($LASTEXITCODE -ne 0) { throw "Failed to prepare setuptools/wheel for chumpy." }
+
+& $Py -m pip install --no-cache-dir --no-build-isolation "chumpy==0.70"
+if ($LASTEXITCODE -ne 0) { throw "Failed to install chumpy==0.70." }
+
 $MMLabPackages = @(
     "mmengine",
     "mmcv==2.0.1",
