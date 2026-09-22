@@ -36,6 +36,22 @@ if (-not (Test-Path $Mim)) {
     throw "mim.exe was not created at $Mim"
 }
 
+# MMPose depends on chumpy==0.70. Chumpy's legacy setup.py imports pip
+# during the build, which fails inside modern PEP 517 build isolation.
+# Install it first in the real MuseTalk environment with build isolation disabled.
+Write-Host ""
+Write-Host "Preparing legacy chumpy dependency for MMPose..."
+& $Py -m pip install --no-cache-dir "setuptools<82" wheel
+if ($LASTEXITCODE -ne 0) { throw "Failed to prepare setuptools/wheel for chumpy." }
+
+& $Py -m pip install --no-cache-dir --no-build-isolation "chumpy==0.70"
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to install chumpy==0.70 without build isolation."
+}
+
+& $Py -c "import importlib.metadata as m; print('chumpy:', m.version('chumpy'))"
+if ($LASTEXITCODE -ne 0) { throw "chumpy metadata verification failed." }
+
 function Invoke-MimInstall {
     param([string]$Package)
 
