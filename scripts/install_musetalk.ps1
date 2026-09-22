@@ -112,22 +112,19 @@ if (-not (Test-Path $Mim)) { throw "mim.exe was not installed correctly." }
 & $Mim install "mmdet==3.1.0"
 & $Mim install "mmpose==1.1.0"
 
-& $Py -m pip install --no-cache-dir "huggingface_hub[cli]==0.30.2"
-$Hf = Join-Path $Venv "Scripts\huggingface-cli.exe"
-if (-not (Test-Path $Hf)) { throw "huggingface-cli.exe was not installed." }
-
-$Models = Join-Path $Root "models"
-New-Item -ItemType Directory -Force $Models | Out-Null
+$WeightScript = "E:\DFB_AI_Studio\scripts\download_musetalk_weights.ps1"
+if (-not (Test-Path $WeightScript)) {
+    throw "MuseTalk weight downloader not found: $WeightScript"
+}
 
 Write-Host ""
-Write-Host "Downloading MuseTalk 1.5 and inference weights..."
-& $Hf download TMElyralab/MuseTalk --local-dir $Models
-& $Hf download stabilityai/sd-vae-ft-mse --local-dir (Join-Path $Models "sd-vae") --include "config.json" "diffusion_pytorch_model.bin"
-& $Hf download openai/whisper-tiny --local-dir (Join-Path $Models "whisper") --include "config.json" "pytorch_model.bin" "preprocessor_config.json"
-& $Hf download yzd-v/DWPose --local-dir (Join-Path $Models "dwpose") --include "dw-ll_ucoco_384.pth"
-& $Hf download ByteDance/LatentSync --local-dir (Join-Path $Models "syncnet") --include "latentsync_syncnet.pt"
-& $Hf download ManyOtherFunctions/face-parse-bisent --local-dir (Join-Path $Models "face-parse-bisent") --include "79999_iter.pth" "resnet18-5c106cde.pth"
+Write-Host "Downloading MuseTalk inference weights with resumable curl..."
+& powershell -ExecutionPolicy Bypass -File $WeightScript -Root $Root
+if ($LASTEXITCODE -ne 0) {
+    throw "MuseTalk weight download failed. Rerun scripts\download_musetalk_weights.ps1 to resume."
+}
 
+$Models = Join-Path $Root "models"
 $Required = @(
     (Join-Path $Models "musetalkV15\unet.pth"),
     (Join-Path $Models "musetalkV15\musetalk.json"),
