@@ -1,0 +1,90 @@
+param(
+    [string]$Root = "E:\DFB_AI_Runtime\source\MuseTalk"
+)
+
+$ErrorActionPreference = "Stop"
+
+$Venv = Join-Path $Root ".venv"
+$Py = Join-Path $Venv "Scripts\python.exe"
+$TempRoot = "E:\DFB_AI_Runtime\temp\musetalk_install"
+$PipCache = "E:\DFB_AI_Runtime\pip_cache"
+$HfHome = "E:\DFB_AI_Runtime\hf_cache"
+
+New-Item -ItemType Directory -Force $TempRoot, $PipCache, $HfHome | Out-Null
+$env:TEMP = $TempRoot
+$env:TMP = $TempRoot
+$env:PIP_CACHE_DIR = $PipCache
+$env:HF_HOME = $HfHome
+$env:HUGGINGFACE_HUB_CACHE = Join-Path $HfHome "hub"
+
+Write-Host ""
+Write-Host "DFB MuseTalk 1.5 Installer"
+Write-Host "Runtime: $Root"
+Write-Host "Large temp/cache files stay on E:"
+Write-Host ""
+
+if (-not (Get-Command git -ErrorAction SilentlyContinue)) { throw "git was not found in PATH." }
+if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) { throw "ffmpeg was not found in PATH." }
+
+if (-not (Test-Path (Join-Path $Root ".git"))) {
+    New-Item -ItemType Directory -Force (Split-Path $Root) | Out-Null
+    git clone https://github.com/TMElyralab/MuseTalk.git $Root
+} else {
+    git -C $Root pull --ff-only
+}
+
+if (-not (Test-Path $Py)) {
+    if (-not (Get-Command py -ErrorAction SilentlyContinue)) { throw "Python launcher 'py' was not found. MuseTalk requires Python 3.10." }
+    py -3.10 -m venv $Venv
+}
+
+& $Py -m pip install --upgrade pip setuptools wheel
+& $Py -m pip install --no-cache-dir torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu118
+& $Py -m pip install --no-cache-dir -r (Join-Path $Root "requirements.txt")
+
+& $Py -m pip install --no-cache-dir -U openmim
+$Mim = Join-Path $Venv "Scripts\mim.exe"
+if (-not (Test-Path $Mim)) { throw "mim.exe was not installed correctly." }
+
+& $Mim install mmengine
+& $Mim install "mmcv==2.0.1"
+& $Mim install "mmdet==3.1.0"
+& $Mim install "mmpose==1.1.0"
+
+& $Py -m pip install --no-cache-dir "huggingface_hub[cli]==0.30.2"
+$Hf = Join-Path $Venv "Scripts\huggingface-cli.exe"
+if (-not (Test-Path $Hf)) { throw "huggingface-cli.exe was not installed." }
+
+$Models = Join-Path $Root "models"
+New-Item -ItemType Directory -Force $Models | Out-Null
+
+Write-Host ""
+Write-Host "Downloading MuseTalk 1.5 and inference weights..."
+& $Hf download TMElyralab/MuseTalk --local-dir $Models
+& $Hf download stabilityai/sd-vae-ft-mse --local-dir (Join-Path $Models "sd-vae") --include "config.json" "diffusion_pytorch_model.bin"
+& $Hf download openai/whisper-tiny --local-dir (Join-Path $Models "whisper") --include "config.json" "pytorch_model.bin" "preprocessor_config.json"
+& $Hf download yzd-v/DWPose --local-dir (Join-Path $Models "dwpose") --include "dw-ll_ucoco_384.pth"
+& $Hf download ByteDance/LatentSync --local-dir (Join-Path $Models "syncnet") --include "latentsync_syncnet.pt"
+& $Hf download ManyOtherFunctions/face-parse-bisent --local-dir (Join-Path $Models "face-parse-bisent") --include "79999_iter.pth" "resnet18-5c106cde.pth"
+
+$Required = @(
+    (Join-Path $Models "musetalkV15\unet.pth"),
+    (Join-Path $Models "musetalkV15\musetalk.json"),
+    (Join-Path $Models "sd-vae\diffusion_pytorch_model.bin"),
+    (Join-Path $Models "whisper\pytorch_model.bin"),
+    (Join-Path $Models "dwpose\dw-ll_ucoco_384.pth"),
+    (Join-Path $Models "face-parse-bisent\79999_iter.pth")
+)
+
+$Missing = $Required | Where-Object { -not (Test-Path $_) }
+if ($Missing.Count -gt 0) {
+    Write-Host "Missing required files:"
+    $Missing | ForEach-Object { Write-Host " - $_" }
+    throw "MuseTalk installation is incomplete."
+}
+
+Write-Host ""
+& $Py -c "import torch; print('Torch:', torch.__version__); print('CUDA available:', torch.cuda.is_available()); print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU')"
+Write-Host ""
+Write-Host "MuseTalk 1.5 installation complete."
+Write-Host "Runtime: $Root"
