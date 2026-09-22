@@ -34,35 +34,47 @@ if (-not (Test-Path (Join-Path $Root ".git"))) {
 }
 
 if (-not (Test-Path $Py)) {
-    $Created = $false
+    # Remove an incomplete venv left by a previous failed install.
+    if (Test-Path $Venv) {
+        Write-Host "Removing incomplete MuseTalk virtual environment..."
+        Remove-Item $Venv -Recurse -Force
+    }
 
-    # First preference: a system Python 3.10 registered with the Windows launcher.
-    if (Get-Command py -ErrorAction SilentlyContinue) {
-        & py -3.10 --version *> $null
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "Creating MuseTalk venv with system Python 3.10..."
-            & py -3.10 -m venv $Venv
+    $Created = $false
+    $LivePortraitPy = "C:\DFB_AI_Runtime\source\LivePortrait-main\.venv\Scripts\python.exe"
+
+    # DFB first choice: reuse the already-working Python 3.10 interpreter
+    # from LivePortrait to create a completely separate MuseTalk venv.
+    if (Test-Path $LivePortraitPy) {
+        try {
+            $Version = (& $LivePortraitPy -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')").Trim()
+        }
+        catch {
+            $Version = ""
+        }
+
+        if ($Version -eq "3.10") {
+            Write-Host "Using the existing LivePortrait Python 3.10 interpreter..."
+            Write-Host $LivePortraitPy
+            & $LivePortraitPy -m venv $Venv
+
             if ($LASTEXITCODE -eq 0 -and (Test-Path $Py)) {
                 $Created = $true
             }
         }
     }
 
-    # DFB fallback: reuse the already-working Python 3.10 interpreter from LivePortrait.
-    if (-not $Created) {
-        $LivePortraitPy = "C:\DFB_AI_Runtime\source\LivePortrait-main\.venv\Scripts\python.exe"
+    # Fallback: use a separately installed/registered system Python 3.10.
+    # Run the probe through cmd.exe so py.exe's stderr does not become a
+    # terminating NativeCommandError under Windows PowerShell.
+    if (-not $Created -and (Get-Command py -ErrorAction SilentlyContinue)) {
+        cmd /c "py -3.10 --version >nul 2>&1"
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "Creating MuseTalk venv with system Python 3.10..."
+            & py -3.10 -m venv $Venv
 
-        if (Test-Path $LivePortraitPy) {
-            $Version = & $LivePortraitPy -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
-
-            if ($Version.Trim() -eq "3.10") {
-                Write-Host "System Python 3.10 is not registered."
-                Write-Host "Using the existing LivePortrait Python 3.10 interpreter to create MuseTalk's isolated venv..."
-                & $LivePortraitPy -m venv $Venv
-
-                if ($LASTEXITCODE -eq 0 -and (Test-Path $Py)) {
-                    $Created = $true
-                }
+            if ($LASTEXITCODE -eq 0 -and (Test-Path $Py)) {
+                $Created = $true
             }
         }
     }
@@ -72,8 +84,8 @@ if (-not (Test-Path $Py)) {
 Python 3.10 is required, but no usable Python 3.10 interpreter was found.
 
 The installer checked:
-  1. py -3.10
-  2. C:\DFB_AI_Runtime\source\LivePortrait-main\.venv\Scripts\python.exe
+  1. C:\DFB_AI_Runtime\source\LivePortrait-main\.venv\Scripts\python.exe
+  2. py -3.10
 
 Do not continue until Python 3.10 is available.
 "@
