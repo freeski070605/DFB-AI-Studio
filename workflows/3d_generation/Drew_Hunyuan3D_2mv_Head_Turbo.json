@@ -335,7 +335,7 @@
       },
       "widgets_values": [
         8000,
-        256
+        192
       ]
     },
     {
@@ -681,7 +681,7 @@
       "outputs": [],
       "properties": {},
       "widgets_values": [
-        "## DFB Drew — Free/Local Hunyuan3D 2mv Head\n\n**Inputs:** front neutral + right profile only.\n\n**Model:** hunyuan3d-dit-v2-mv-turbo_fp16.safetensors\n\n**Goal:** source head/bust mesh for MetaHuman From Custom Mesh.\n\nFront Neutral is the identity anchor. Right profile is depth support."
+        "## DFB Drew — Free/Local Hunyuan3D 2mv Head\n\n**Inputs:** front neutral + right profile only.\n\n**Model:** hunyuan3d-dit-v2-mv-turbo_fp16.safetensors\n\n**Low-memory mesh decode:** octree 192 to avoid Windows RAM exhaustion in VoxelToMesh surface-net.\n\n**Goal:** source head/bust mesh for MetaHuman From Custom Mesh.\n\nFront Neutral is the identity anchor. Right profile is depth support."
       ],
       "color": "#222",
       "bgcolor": "#000"
@@ -895,7 +895,9 @@
         "DFB_Drew_Head_Front.png",
         "DFB_Drew_Head_Right.png"
       ],
-      "notes": "Front Neutral is identity anchor. Right profile is depth support."
+      "notes": "Front Neutral is identity anchor. Right profile is depth support.",
+      "octree_resolution": 192,
+      "memory_note": "Reduced from 256 after CPU RAM MemoryError in VoxelToMesh surface-net on 16 GB system."
     }
   },
   "version": 0.4
